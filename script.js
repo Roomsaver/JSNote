@@ -7,6 +7,7 @@ let brushColor = "black";
 let backgroundColor = "white";
 let brushSize = 1;
 let brushType = 0;
+let undoArray = [];
 
 // Global mouse variables
 var drawing = false;
@@ -21,6 +22,7 @@ let frameIndex = 0;
 let frames = [];
 let loop = false;
 let currentSpeed = 7;
+let playerInterval = null;
 
 
 // Implementation of Bresenham's line algorithm
@@ -103,6 +105,7 @@ function draw(x, y)
         // (first x and y are already set)
         secondX = x;
         secondY = y;
+        undoArray.push([[firstX, firstY], [secondX, secondY]]);
 
         // Loop for every pixel in our brush size (e.g. 2 times for a 2x2 brush)
         for(let i = 0;i<brushSize;i++)
@@ -145,6 +148,24 @@ function drawCircle(x, y)
     ctx.lineWidth = brushSize;
     ctx.strokeStyle = brushColor;
     ctx.stroke();
+}
+
+function undo(position)
+{
+    let tempFirstX = firstX;
+    let tempFirstY = firstY;
+
+    let temp = brushColor;
+    brushColor = backgroundColor;
+    
+    firstX = position[0][0];
+    firstY = position[0][1]
+    draw(position[1][0], position[1][1]);
+    
+    brushColor = temp;
+    firstX = tempFirstX;
+    firstY = tempFirstY;
+
 }
 
 // Fill in the entire canvas with a specified color
@@ -224,8 +245,17 @@ function deleteFrame(frameNum)
     // This also reindexes all other frames
     frames.splice(frameNum, 1);
     // Display the previous frame, unless the current frame is index 0, then we will recreate the 0th frame
-    frameNum = frameNum > 0 ? frameNum-- : 0;
+    if(frameNum > 0)
+    {
+        frameNum -= 1;
+    }
+    else
+    {
+        frameNum = 0;
+    }
     ctx.putImageData(frames[frameNum], 0, 0);
+    frameIndex = frameNum;
+    setFrameText(frameIndex);
 }
 
 // Update the text that displays what the current frame is
@@ -246,7 +276,7 @@ function playAnimation(speed)
 {
     // Reset to the first frame
     frameIndex = 0;
-    let player = setInterval(()=>
+    playerInterval = setInterval(()=>
         {
             // If the current frame is the last frame
             if(frameIndex >= frames.length)
@@ -259,7 +289,8 @@ function playAnimation(speed)
                 // If we are not looping, stop the setInterval and set the frame index to the last frame
                 else
                 {
-                    clearInterval(player);
+                    clearInterval(playerInterval);
+                    playerInterval = null;
                     frameIndex = frames.length - 1;
                 }
             }
@@ -383,13 +414,33 @@ $(document).ready(
     // Quick select functions //
     // ////////////////////// //
 
-    $('#play-button').on('click', ()=>{playAnimationWithSpeed(currentSpeed);});
+    $('#play-button').on('click', ()=>{
+        if(playerInterval === null)
+        {
+            playAnimationWithSpeed(currentSpeed);
+            $('#play-button').css('background-image', 'url("icons/stop.svg")');
+        }
+        else
+        {
+            clearInterval(playerInterval);
+            playerInterval = null;
+            $('#play-button').css('background-image', 'url("icons/play.svg")')
+        }
+    });
 
     $('#play-speed').on('click', ()=>{
         // Loop through the speed settings 1-10 and reset back to 1
         currentSpeed == 10 ? currentSpeed = 1 : currentSpeed++;
         $('#play-speed').text(currentSpeed);
     });
+
+    $('#repeat').on('click', ()=>{loop = !loop; loop ? $('#repeat').css('background-image', 'url("icons/repeat.svg")') : $('#repeat').css('background-image', 'url("icons/dontrepeat.svg")')});
+
+    $('#color').on('change', ()=>{brushColor = $('#color').val();});
+    
+    $('#draw').on('click', ()=>{brushColor = selectedBrushColor;});
+
+    $('#erase').on('click', ()=>{brushColor = backgroundColor;});
 
     $('#brush-size').on('click', ()=>{
         // Loop through the brush sizes 1-10 and reset back to 1
@@ -413,6 +464,15 @@ $(document).ready(
             {
                 case 32:
                     // space
+                    if(playerInterval === null)
+                    {
+                        playAnimationWithSpeed(currentSpeed);
+                    }
+                    else
+                    {
+                        clearInterval(playerInterval);
+                        playerInterval = null;
+                    }
                     break;
                 case 37:
                     // left arrow

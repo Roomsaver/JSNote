@@ -53,15 +53,14 @@ body
     background-color: #ebda6c;
 }
 
-#quick-select > a
+#quick-select > a, input
 {
-    border: 3px red solid;
+    border: 3px black solid;
     border-radius: 3px;
     padding: 10px 10px;
     height: 10px;
     width: 10px;
     text-align: center;
-    content: "";
     clear: both;
     display: flex;
     justify-content: center;
@@ -70,12 +69,46 @@ body
     cursor: pointer;
 
     background-size: contain;
-    filter: brightness(0);
 }
 
-#clear
+#quick-select > a
 {
-    background-image: url('icons/clear.svg');
+    filter: brightness(0);
+    content: "";
+}
+
+#quick-select > input
+{
+    padding: 0;
+    min-height: 26px;
+    min-width: 26px;
+}
+
+#quick-select > input::-moz-color-swatch {
+  border: none;
+  border-color: transparent;
+}
+
+#quick-select > input::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 0;
+}
+
+#quick-select > input::-webkit-color-swatch {
+  border: none;
+  border-color: transparent;
+}
+
+
+
+#play-button
+{
+    background-image: url('icons/play.svg');
+}
+
+#repeat
+{
+    background-image: url('icons/dontrepeat.svg');
 }
 
 #draw
@@ -83,7 +116,12 @@ body
     background-image: url('icons/draw.svg');
 }
 
-#play-button
+#erase
 {
-    background-image: url('icons/play.svg');
+    background-image: url('icons/erase.svg');
+}
+
+#clear
+{
+    background-image: url('icons/clear.svg');
 }
